@@ -92,13 +92,16 @@
     AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:_soundURL options:nil];
     UIImage *renderedImage = [self renderWaveImageFromAudioAsset:asset];
     
-    _waveImageView.image = renderedImage;
-    _progressImageView.image = [renderedImage tintedImageWithColor:_progressColor];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _waveImageView.image = renderedImage;
+        _progressImageView.image = [renderedImage tintedImageWithColor:_progressColor];
+        
+        _waveImageView.width = renderedImage.size.width;
+        _waveImageView.left = (self.width - renderedImage.size.width) / 2;
+        _progressImageView.left = _waveImageView.left;
+        _progressImageView.width = 0;
+    });
     
-    _waveImageView.width = renderedImage.size.width;
-    _waveImageView.left = (self.width - renderedImage.size.width) / 2;
-    _progressImageView.left = _waveImageView.left;
-    _progressImageView.width = 0;
 }
 
 - (UIImage*) drawImageFromSamples:(SInt16*)samples
@@ -108,7 +111,6 @@
     CGSize imageSize = CGSizeMake(sampleCount * (_drawSpaces ? 2*_barLineWidth : 0), self.height);
     UIGraphicsBeginImageContextWithOptions(imageSize, NO, 0);
     CGContextRef context = UIGraphicsGetCurrentContext();
-    
     CGContextSetFillColorWithColor(context, self.backgroundColor.CGColor);
     CGContextSetAlpha(context, 1.0);
     
@@ -275,11 +277,15 @@
     sampleCount = (int) adjustedSongData.length / 2;
     
     if (reader.status == AVAssetReaderStatusCompleted) {
+        
         UIImage *image = [self drawImageFromSamples:(SInt16 *)adjustedSongData.bytes
                                            maxValue:maxValue
                                         sampleCount:sampleCount];
+        [[self delegate] didFinishRendering];
         return image;
+        
     }
+    [[self delegate] didFinishRendering];
     return nil;
 }
 

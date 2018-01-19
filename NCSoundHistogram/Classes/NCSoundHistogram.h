@@ -8,6 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol NCSoundHistogramDelegate
+-(void)didFinishRendering;
+@end
+
 @interface NCSoundHistogram : UIView
 
 @property (nonatomic, strong) NSURL *soundURL;
@@ -17,6 +21,7 @@
 @property (nonatomic, strong) UIColor *progressColor;
 @property (nonatomic, assign) BOOL drawSpaces;
 @property (nonatomic, assign) float barLineWidth;
+@property (nonatomic, weak) id <NCSoundHistogramDelegate> delegate;
 
 -(UIImage *)getAsImage;
 -(void)animatePlayingWithDuration:(float)seconds;
